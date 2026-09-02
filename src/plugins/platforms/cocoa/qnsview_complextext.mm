@@ -322,13 +322,13 @@
 */
 - (void)unmarkText
 {
-    // FIXME: Match cancelComposingText in early exit and focus object handling
+    // FIXME: Match cancelComposingText in early exit handling
 
     qCDebug(lcQpaKeys) << "Unmarking" << m_composingText
         << "for focus object" << m_composingFocusObject;
 
     if (!m_composingText.isEmpty()) {
-        QObject *focusObject = self.focusObject;
+        QObject *focusObject = m_composingFocusObject;
         if (queryInputMethod(focusObject)) {
             QInputMethodEvent e;
             e.setCommitString(m_composingText);

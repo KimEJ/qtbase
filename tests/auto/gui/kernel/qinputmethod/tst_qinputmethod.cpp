@@ -112,6 +112,7 @@ private slots:
     void inputMethodAccepted();
 #if defined(Q_OS_MACOS)
     void commitUsesFirstResponder();
+    void unmarkTextUsesComposingFocusObject();
 #endif
 
 private:
@@ -351,6 +352,32 @@ void tst_qinputmethod::commitUsesFirstResponder()
     qApp->inputMethod()->commit();
 
     QCOMPARE(composingItem.committedText, markedText);
+}
+
+void tst_qinputmethod::unmarkTextUsesComposingFocusObject()
+{
+    if (QGuiApplication::platformName().compare(QLatin1String("cocoa"), Qt::CaseInsensitive))
+        QSKIP("This test requires the Cocoa platform plugin.");
+
+    InputItem composingItem;
+    InputItem currentItem;
+    DummyWindow window;
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    window.requestActivate();
+    QTRY_COMPARE(qApp->focusWindow(), &window);
+    window.setFocusObject(&composingItem);
+
+    const QString markedText = QString::fromUtf8("\xed\x8a\xb8");
+    setNativeMarkedText(&window, markedText);
+    QCOMPARE(composingItem.preeditText, markedText);
+
+    window.setFocusObject(&currentItem);
+    auto *view = reinterpret_cast<NSView<NSTextInputClient> *>(window.winId());
+    [view unmarkText];
+
+    QCOMPARE(composingItem.committedText, markedText);
+    QVERIFY(currentItem.committedText.isEmpty());
 }
 #endif
 
